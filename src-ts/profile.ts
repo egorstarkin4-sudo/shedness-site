@@ -32,11 +32,118 @@ interface DownloadResp {
 }
 
 const SAFE_AVATARS = ["./assets/img/logo.png", "./assets/img/snowflake.png"];
+const LAUNCHER_HANDOFF_KEY = "shedness_launcher_handoff";
+
+interface LauncherHandoff {
+  port: number;
+  state: string;
+}
 
 let authMode: "login" | "register" = "login";
 let turnstileToken = "";
 let selectedPlatform: "windows" | "macos" | "linux" = "windows";
 let releasesCache: PublicRelease[] = [];
+let activeHandoff: LauncherHandoff | null = null;
+let handoffSent = false;
+
+function readLauncherHandoff(): LauncherHandoff | null {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const rawPort = params.get("launcher_port");
+    const rawState = params.get("launcher_state");
+    if (rawPort && rawState) {
+      const port = Number(rawPort);
+      if (
+        Number.isInteger(port) &&
+        port >= 1024 &&
+        port <= 65535 &&
+        /^[A-Za-z0-9_-]{16,128}$/.test(rawState)
+      ) {
+        const val = { port, state: rawState };
+        sessionStorage.setItem(LAUNCHER_HANDOFF_KEY, JSON.stringify(val));
+        return val;
+      }
+    }
+    const stored = sessionStorage.getItem(LAUNCHER_HANDOFF_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as Partial<LauncherHandoff>;
+      if (
+        typeof parsed.port === "number" &&
+        Number.isInteger(parsed.port) &&
+        parsed.port >= 1024 &&
+        parsed.port <= 65535 &&
+        typeof parsed.state === "string" &&
+        /^[A-Za-z0-9_-]{16,128}$/.test(parsed.state)
+      ) {
+        return { port: parsed.port, state: parsed.state };
+      }
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  return null;
+}
+
+function clearLauncherHandoff(): void {
+  activeHandoff = null;
+  try {
+    sessionStorage.removeItem(LAUNCHER_HANDOFF_KEY);
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+async function sendSessionToLauncher(): Promise<boolean> {
+  if (!activeHandoff || handoffSent) return false;
+  const supabase = getSupabaseClient();
+  if (!supabase) return false;
+
+  const { data: sess } = await supabase.auth.getSession();
+  const accessToken = sess.session?.access_token;
+  const refreshToken = sess.session?.refresh_token ?? "";
+  if (!accessToken) return false;
+
+  const { port, state } = activeHandoff;
+  handoffSent = true;
+  clearLauncherHandoff();
+
+  const hashParams = new URLSearchParams({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    state,
+  });
+  window.location.assign(`http://127.0.0.1:${port}/callback#${hashParams.toString()}`);
+  return true;
+}
+
+function renderLauncherBanner(
+  loggedIn: boolean,
+  nick?: string,
+  email?: string,
+): void {
+  const banner = $("launcher-auth-banner");
+  const desc = $("launcher-banner-desc");
+  const actions = $("launcher-banner-actions");
+  const btnContinue = $("btn-launcher-continue");
+  if (!banner || !desc || !actions) return;
+
+  if (!activeHandoff) {
+    banner.classList.add("hidden");
+    return;
+  }
+
+  banner.classList.remove("hidden");
+  if (!loggedIn) {
+    desc.textContent =
+      "Войдите в аккаунт или зарегистрируйтесь ниже — данные автоматически передадутся в Shedness Launcher.";
+    actions.classList.add("hidden");
+  } else {
+    const label = nick || email || "Игрок";
+    desc.textContent = `Вы авторизованы на сайте как ${label}${email ? ` (${email})` : ""}. Подтвердите вход в лаунчер или смените аккаунт.`;
+    if (btnContinue) btnContinue.textContent = `Войти в лаунчер как ${nick || "Игрок"}`;
+    actions.classList.remove("hidden");
+  }
+}
 
 function $(id: string): HTMLElement | null {
   return document.getElementById(id);
@@ -109,6 +216,7 @@ async function loadProfile(): Promise<void> {
   if (!user) {
     authSection?.classList.remove("hidden");
     dashSection?.classList.add("hidden");
+    renderLauncherBanner(false);
     return;
   }
 
@@ -199,11 +307,24 @@ async function loadProfile(): Promise<void> {
     dlControls?.classList.add("hidden");
   }
 
+  renderLauncherBanner(true, profile?.mc_nickname || undefined, user.email ?? undefined);
   hideBanner(alertEl);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  activeHandoff = readLauncherHandoff();
   const alertEl = $("profile-alert");
+
+  $("btn-launcher-continue")?.addEventListener("click", () => {
+    void sendSessionToLauncher();
+  });
+
+  $("btn-launcher-switch")?.addEventListener("click", async () => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+    await supabase.auth.signOut({ scope: "local" });
+    await loadProfile();
+  });
   const authTurnstile = mountTurnstile($("auth-turnstile"), (t) => {
     turnstileToken = t;
   });
@@ -274,6 +395,9 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         await loadProfile();
+        if (activeHandoff) {
+          await sendSessionToLauncher();
+        }
       } else {
         const redirectUrl = new URL("./profile.html", window.location.href).toString();
         const { data, error } = await supabase.auth.signUp({
@@ -300,6 +424,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (data.session) {
           await loadProfile();
+          if (activeHandoff) {
+            await sendSessionToLauncher();
+          }
         } else {
           showBanner(alertEl, "Письмо подтверждения отправлено на указанный email.", "success");
         }

@@ -30,6 +30,16 @@
     <main class="container" style="flex: 1; padding: 48px 20px 80px; max-width: 960px;">
       <div id="profile-alert" class="alert-banner hidden"></div>
 
+      <section id="launcher-auth-banner" class="glass-card hidden" style="max-width: 520px; margin: 0 auto 18px;">
+        <span class="pill-tag">Shedness Launcher</span>
+        <h2 id="launcher-banner-title" style="font-size: 18px; margin-bottom: 6px;">Вход в лаунчер</h2>
+        <p id="launcher-banner-desc" style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 0;"></p>
+        <div id="launcher-banner-actions" class="hidden" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;">
+          <button type="button" id="btn-launcher-continue" class="btn-primary">Войти в лаунчер</button>
+          <button type="button" id="btn-launcher-switch" class="btn-glass">Сменить аккаунт</button>
+        </div>
+      </section>
+
       <div id="config-notice" class="glass-card hidden" style="max-width: 620px; margin: 0 auto;">
         <h1 style="font-size: 20px; margin-bottom: 8px;">Требуется настройка Supabase</h1>
         <p style="font-size: 14px; color: var(--text-secondary);">
@@ -188,6 +198,6 @@
   <script src="./assets/js/anime.min.js"></script>
   <script src="./assets/js/effects.js?v=2"></script>
   <script src="./assets/js/animations.js"></script>
-  <script src="./assets/js/profile.js?v=2"></script>
+  <script src="./assets/js/profile.js?v=3"></script>
 </body>
 </html>
