@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Shedness Launcher — современный минималистичный лаунчер Minecraft с поддержкой Vanilla, Fabric, NeoForge, Forge, Modrinth и 3D скин-студией." />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co http://127.0.0.1:54321 http://localhost:54321 https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <title>Shedness Launcher — Минималистичный лаунчер Minecraft</title>
+  <link rel="icon" type="image/png" href="./assets/img/logo.png" />
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <div class="shader-fallback-bg" aria-hidden="true"></div>
+  <canvas id="bg-shader-canvas" aria-hidden="true"></canvas>
+  <canvas id="snow-canvas" aria-hidden="true"></canvas>
+
+  <div class="site-content">
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="./index.html" class="brand-link">
+          <img src="./assets/img/logo.png" alt="Shedness Launcher" class="brand-logo" />
+          <span>SHEDNESS</span>
+        </a>
+
+        <nav class="header-nav" aria-label="Навигация">
+          <a href="#preview" class="nav-link">Лаунчер</a>
+          <a href="#features" class="nav-link">Возможности</a>
+          <a href="#releases" class="nav-link">Релизы</a>
+          <a href="#pricing" class="nav-link">Лицензии</a>
+          <a href="#faq" class="nav-link">FAQ</a>
+        </nav>
+
+        <div class="header-actions">
+          <a href="./profile.html" class="btn-glass">
+            <span id="nav-account-label">Войти</span>
+          </a>
+          <a href="./profile.html#download" class="btn-primary">Скачать</a>
+        </div>
+      </div>
+    </header>
+
+    <main style="flex: 1;">
+      <!-- Hero -->
+      <section class="hero container">
+        <span class="pill-tag">Shedness Launcher • Minimalist Minecraft Launcher</span>
+        <h1 class="hero-title">Минималистичный лаунчер Minecraft нового поколения</h1>
+        <p class="hero-sub">
+          Liquid Glass интерфейс с живым WebGL-шейдером и снежинками, поддержка Vanilla / Fabric /
+          NeoForge / Forge, каталог Modrinth, 3D скин-студия и защищённая выдача сборок по
+          лицензионным ключам.
+        </p>
+
+        <div class="hero-cta-row">
+          <a href="./profile.html#download" class="btn-primary">Скачать лаунчер</a>
+          <a href="./profile.html#redeem" class="btn-glass">Активировать ключ</a>
+        </div>
+
+        <!-- /ui Launcher Shell Preview -->
+        <div id="preview" class="launcher-window" aria-label="Превью интерфейса Shedness Launcher">
+          <div class="launcher-titlebar">
+            <span class="launcher-titlebar-label">Shedness Launcher</span>
+            <div class="mac-dots" aria-hidden="true">
+              <span class="mac-dot mac-min"></span>
+              <span class="mac-dot mac-max"></span>
+              <span class="mac-dot mac-close"></span>
+            </div>
+          </div>
+
+          <div class="launcher-body">
+            <aside class="launcher-sidebar">
+              <div class="launcher-nav">
+                <button type="button" class="launcher-nav-btn active" data-launcher-tab="play">Играть</button>
+                <button type="button" class="launcher-nav-btn" data-launcher-tab="versions">Версии</button>
+                <button type="button" class="launcher-nav-btn" data-launcher-tab="mods">Моды</button>
+                <button type="button" class="launcher-nav-btn" data-launcher-tab="skins">Скины</button>
+                <button type="button" class="launcher-nav-btn" data-launcher-tab="settings">Настройки</button>
+              </div>
+
+              <div class="glass-subcard" style="padding: 10px; display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: #ECECF0; color: #111; display: flex; align-items: center; justify-content: center; font-weight: 700;">S</div>
+                <div>
+                  <div style="font-size: 12.5px; font-weight: 600;">Player</div>
+                  <div style="font-size: 11px; color: var(--text-secondary);">Microsoft / Offline</div>
+                </div>
+              </div>
+            </aside>
+
+            <div class="launcher-main">
+              <!-- Play View -->
+              <div class="launcher-view active" data-launcher-view="play">
+                <div class="glass-subcard" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
+                  <div>
+                    <span id="preview-loader-pill" class="pill-tag" style="margin-bottom: 8px;">FABRIC</span>
+                    <h3 style="font-size: 22px; font-weight: 700;">Minecraft 1.21.4</h3>
+                    <p style="font-size: 13px; color: var(--text-secondary);">Готово к запуску • Автопоиск Java 21</p>
+                  </div>
+                  <a href="./profile.html#download" class="btn-primary">Скачать лаунчер</a>
+                </div>
+
+                <div class="grid-2">
+                  <div class="glass-subcard">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Аккаунты</div>
+                    <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 12px;">
+                      Официальный вход Microsoft (без хранения паролей в приложении) или оффлайн-профиль.
+                    </p>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                      <span class="pill-tag" style="margin-bottom: 0;">Microsoft OAuth</span>
+                      <span class="pill-tag" style="margin-bottom: 0;">Offline</span>
+                    </div>
+                  </div>
+
+                  <div class="glass-subcard">
+                    <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">Модлоадер</div>
+                    <div class="seg-control">
+                      <button type="button" class="seg-btn" data-loader-choice="vanilla">Vanilla</button>
+                      <button type="button" class="seg-btn active" data-loader-choice="fabric">Fabric</button>
+                      <button type="button" class="seg-btn" data-loader-choice="neoforge">NeoForge</button>
+                      <button type="button" class="seg-btn" data-loader-choice="forge">Forge</button>
+                    </div>
+                    <div id="preview-console-line" style="margin-top: 10px; padding: 9px; border-radius: 8px; background: rgba(0,0,0,0.32); font-family: Consolas, monospace; font-size: 11.5px; color: #E4E4EA;">
+                      [Shedness] Профиль fabric 1.21.4 готов к запуску
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Versions View -->
+              <div class="launcher-view" data-launcher-view="versions">
+                <div class="glass-subcard" style="display: flex; justify-content: space-between; align-items: center;">
+                  <div><strong>Minecraft 1.21.4</strong><div style="font-size: 12px; color: var(--text-secondary);">Release • Vanilla / Fabric / NeoForge / Forge</div></div>
+                  <span class="pill-tag" style="margin-bottom: 0;">Latest</span>
+                </div>
+                <div class="glass-subcard" style="display: flex; justify-content: space-between; align-items: center;">
+                  <div><strong>Minecraft 1.20.4</strong><div style="font-size: 12px; color: var(--text-secondary);">Release • Полная совместимость с Modrinth</div></div>
+                  <span class="pill-tag" style="margin-bottom: 0;">Release</span>
+                </div>
+                <div class="glass-subcard" style="display: flex; justify-content: space-between; align-items: center;">
+                  <div><strong>1.7.10 – 26.3</strong><div style="font-size: 12px; color: var(--text-secondary);">Полный каталог релизов и Snapshots</div></div>
+                  <span class="pill-tag" style="margin-bottom: 0;">Archive</span>
+                </div>
+              </div>
+
+              <!-- Mods View -->
+              <div class="launcher-view" data-launcher-view="mods">
+                <div class="grid-3">
+                  <div class="glass-subcard">
+                    <strong style="font-size: 14px;">Sodium</strong>
+                    <div style="font-size: 11.5px; color: var(--text-muted); margin: 4px 0 8px;">Modrinth • Оптимизация</div>
+                    <p style="font-size: 12.5px; color: var(--text-secondary);">Высокий FPS и современный рендер мира.</p>
+                  </div>
+                  <div class="glass-subcard">
+                    <strong style="font-size: 14px;">Iris Shaders</strong>
+                    <div style="font-size: 11.5px; color: var(--text-muted); margin: 4px 0 8px;">Modrinth • Шейдеры</div>
+                    <p style="font-size: 12.5px; color: var(--text-secondary);">Поддержка шейдерпаков на Fabric и NeoForge.</p>
+                  </div>
+                  <div class="glass-subcard">
+                    <strong style="font-size: 14px;">Сборки и ресурспаки</strong>
+                    <div style="font-size: 11.5px; color: var(--text-muted); margin: 4px 0 8px;">Modrinth Hub</div>
+                    <p style="font-size: 12.5px; color: var(--text-secondary);">Установка модов и паков прямо в папку игры.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Skins View -->
+              <div class="launcher-view" data-launcher-view="skins">
+                <div class="glass-subcard">
+                  <h3 style="font-size: 16px; margin-bottom: 8px;">Скин-студия 64×64 и WebGL 3D-превью</h3>
+                  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+                    Встроенный пиксельный редактор текстур, поддержка Classic (4px) и Slim (3px),
+                    интерактивное 3D-превью модели и управление лицензионными/локальными плащами.
+                  </p>
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <span class="pill-tag" style="margin-bottom: 0;">64×64 Editor</span>
+                    <span class="pill-tag" style="margin-bottom: 0;">3D WebGL Viewer</span>
+                    <span class="pill-tag" style="margin-bottom: 0;">Capes</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Settings View -->
+              <div class="launcher-view" data-launcher-view="settings">
+                <div class="glass-subcard">
+                  <h3 style="font-size: 16px; margin-bottom: 8px;">Java, память и Discord Rich Presence</h3>
+                  <p style="font-size: 13px; color: var(--text-secondary);">
+                    Выбор папки игры (по умолчанию <code>C:\Shedness</code>), автопоиск Java через
+                    PATH / JAVA_HOME, слайдеры Min/Max RAM, кастомные JVM-аргументы и статус в Discord.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section id="features" class="section container">
+        <div class="section-head">
+          <span class="pill-tag">Возможности</span>
+          <h2 class="section-title">Создан для комфортной игры</h2>
+          <p class="section-desc">Быстрый интерфейс без рекламы и лишнего веса, с акцентом на эстетику и безопасность.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="glass-card">
+            <h3 style="font-size: 16px; margin-bottom: 8px;">Все модлоадеры</h3>
+            <p style="font-size: 13.5px; color: var(--text-secondary);">Vanilla, Fabric, NeoForge и Forge от 1.7.10 до актуальных версий и снапшотов.</p>
+          </div>
+          <div class="glass-card">
+            <h3 style="font-size: 16px; margin-bottom: 8px;">Интеграция Modrinth</h3>
+            <p style="font-size: 13.5px; color: var(--text-secondary);">Удобный поиск и установка модов, ресурспаков и модпаков в один клик.</p>
+          </div>
+          <div class="glass-card">
+            <h3 style="font-size: 16px; margin-bottom: 8px;">3D скин-студия</h3>
+            <p style="font-size: 13.5px; color: var(--text-secondary);">Редактор пикселей 64×64, вращаемое 3D-превью, Classic/Slim и плащи.</p>
+          </div>
+          <div class="glass-card">
+            <h3 style="font-size: 16px; margin-bottom: 8px;">Liquid Glass + Шейдер</h3>
+            <p style="font-size: 13.5px; color: var(--text-secondary);">Живой WebGL-фон с мягким свечением и падающими снежинками в едином стиле.</p>
+          </div>
+          <div class="glass-card">
+            <h3 style="font-size: 16px; margin-bottom: 8px;">Java и Discord RPC</h3>
+            <p style="font-size: 13.5px; color: var(--text-secondary);">Тонкая настройка RAM, JVM-аргументов и отображение активности в Discord.</p>
+          </div>
+          <div class="glass-card">
+            <h3 style="font-size: 16px; margin-bottom: 8px;">Защищённая выдача</h3>
+            <p style="font-size: 13.5px; color: var(--text-secondary);">Подписанные URL на 60 секунд по лицензионному ключу и эталонный SHA-256 хеш.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Releases -->
+      <section id="releases" class="section container">
+        <div class="section-head">
+          <span class="pill-tag">Релизы и SHA-256</span>
+          <h2 class="section-title">Выдача сборок Shedness Launcher</h2>
+          <p class="section-desc">Файлы выдаются в личном кабинете по активной лицензии через одноразовую ссылку (TTL 60 сек).</p>
+        </div>
+
+        <div id="public-releases-list" class="glass-card grid-2">
+          <div class="glass-subcard">
+            <strong style="font-size: 15px;">Windows / macOS / Linux</strong>
+            <p style="font-size: 13.5px; color: var(--text-secondary); margin-top: 6px;">
+              Официальные сборки лаунчера с автоматической проверкой SHA-256 и защитой от подмены.
+            </p>
+          </div>
+          <div class="glass-subcard" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <div>
+              <strong style="font-size: 15px;">Доступ по лицензии</strong>
+              <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Войдите и активируйте ключ для загрузки.</p>
+            </div>
+            <a href="./profile.html#download" class="btn-primary">Скачать</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing -->
+      <section id="pricing" class="section container">
+        <div class="section-head">
+          <span class="pill-tag">Лицензионные ключи</span>
+          <h2 class="section-title">Тарифы доступа</h2>
+          <p class="section-desc">Ключи генерируются на сервере и подписываются HMAC. Активация — в личном кабинете.</p>
+        </div>
+
+        <div class="grid-4">
+          <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h3 style="font-size: 17px; margin-bottom: 6px;">Сброс HWID</h3>
+              <p style="font-size: 13px; color: var(--text-secondary);">Перенос лицензии на новый ПК.</p>
+              <div style="margin: 18px 0; font-size: 28px; font-weight: 800;">100 ₽ <span style="font-size: 13px; font-weight: 400; color: var(--text-muted);">разово</span></div>
+            </div>
+            <a href="./profile.html#redeem" class="btn-glass">Активировать</a>
+          </div>
+
+          <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h3 style="font-size: 17px; margin-bottom: 6px;">30 Дней</h3>
+              <p style="font-size: 13px; color: var(--text-secondary);">Доступ к загрузке и обновлениям на месяц.</p>
+              <div style="margin: 18px 0; font-size: 28px; font-weight: 800;">150 ₽ <span style="font-size: 13px; font-weight: 400; color: var(--text-muted);">/ 30 дн</span></div>
+            </div>
+            <a href="./profile.html#redeem" class="btn-glass">Активировать</a>
+          </div>
+
+          <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h3 style="font-size: 17px; margin-bottom: 6px;">1 Год</h3>
+              <p style="font-size: 13px; color: var(--text-secondary);">Годовая лицензия и ранние билды.</p>
+              <div style="margin: 18px 0; font-size: 28px; font-weight: 800;">250 ₽ <span style="font-size: 13px; font-weight: 400; color: var(--text-muted);">/ 365 дн</span></div>
+            </div>
+            <a href="./profile.html#redeem" class="btn-glass">Активировать</a>
+          </div>
+
+          <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(255,255,255,0.45);">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 17px; margin-bottom: 6px;">Навсегда</h3>
+                <span class="pill-tag" style="margin-bottom: 0;">Top</span>
+              </div>
+              <p style="font-size: 13px; color: var(--text-secondary);">Пожизненная лицензия на Shedness Launcher.</p>
+              <div style="margin: 18px 0; font-size: 28px; font-weight: 800;">400 ₽ <span style="font-size: 13px; font-weight: 400; color: var(--text-muted);">Lifetime</span></div>
+            </div>
+            <a href="./profile.html#redeem" class="btn-primary">Активировать</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section id="faq" class="section container">
+        <div class="section-head">
+          <span class="pill-tag">FAQ</span>
+          <h2 class="section-title">Частые вопросы</h2>
+        </div>
+
+        <div style="max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px;">
+          <div class="glass-card faq-item open" style="padding: 0;">
+            <button type="button" class="faq-trigger" style="width: 100%; background: transparent; border: none; color: #FFF; padding: 18px 20px; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer;">
+              Как скачать Shedness Launcher?
+            </button>
+            <div class="faq-answer">
+              Зарегистрируйтесь в личном кабинете, активируйте лицензионный ключ формата SHEDNESS-..., после чего в разделе загрузки станет доступна временная подписанная ссылка (TTL 60 сек) и эталонный SHA-256 хеш файла.
+            </div>
+          </div>
+
+          <div class="glass-card faq-item" style="padding: 0;">
+            <button type="button" class="faq-trigger" style="width: 100%; background: transparent; border: none; color: #FFF; padding: 18px 20px; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer;">
+              Какие загрузчики и версии Minecraft поддерживаются?
+            </button>
+            <div class="faq-answer">
+              Поддерживаются Vanilla, Fabric, NeoForge и Forge от 1.7.10 до новейших релизов и снапшотов, а также прямой поиск и установка модов, ресурспаков и сборок с Modrinth.
+            </div>
+          </div>
+
+          <div class="glass-card faq-item" style="padding: 0;">
+            <button type="button" class="faq-trigger" style="width: 100%; background: transparent; border: none; color: #FFF; padding: 18px 20px; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer;">
+              Как проверяется целостность скачанного файла?
+            </button>
+            <div class="faq-answer">
+              Рядом с кнопкой загрузки всегда отображается SHA-256 хеш из базы данных. Вы можете сверить его локально командой <code>Get-FileHash</code> в PowerShell.
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="./assets/img/logo.png" alt="Shedness" style="width: 22px; height: 22px; border-radius: 6px;" />
+          <span style="color: #F4F4F6; font-weight: 600;">SHEDNESS LAUNCHER</span>
+        </div>
+        <div style="display: flex; gap: 18px; flex-wrap: wrap;">
+          <a href="./profile.html">Личный кабинет</a>
+          <a href="./terms.html">Соглашение</a>
+          <a href="./privacy.html">Конфиденциальность</a>
+        </div>
+        <div>© 2026 Shedness Launcher. Not affiliated with Mojang AB.</div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="./assets/js/site-config.js"></script>
+  <script src="./assets/js/anime.min.js"></script>
+  <script src="./assets/js/effects.js"></script>
+  <script src="./assets/js/animations.js"></script>
+  <script src="./assets/js/landing.js"></script>
+</body>
+</html>

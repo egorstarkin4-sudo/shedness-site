@@ -1,0 +1,16 @@
+project_id = "shedness-launcher"
+
+[functions.auth-guard]
+verify_jwt = false
+
+[functions.download-release]
+verify_jwt = true
+
+[functions.redeem-key]
+verify_jwt = true
+
+[functions.admin-totp]
+verify_jwt = true
+
+[functions.admin-actions]
+verify_jwt = true

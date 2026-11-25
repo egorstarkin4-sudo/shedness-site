@@ -1,0 +1,56 @@
+name: Deploy Shedness Site to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build_and_deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Inject public runtime config from GitHub Variables (if set)
+        if: ${{ vars.NEXT_PUBLIC_SUPABASE_URL != '' && vars.NEXT_PUBLIC_SUPABASE_ANON_KEY != '' }}
+        run: |
+          cat << 'EOF' > assets/js/site-config.js
+          window.__SHEDNESS_CONFIG__ = {
+            supabaseUrl: "${{ vars.NEXT_PUBLIC_SUPABASE_URL }}",
+            supabaseAnonKey: "${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}",
+            turnstileSiteKey: "${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}"
+          };
+          EOF
+
+      - name: Prepare static Pages artifact
+        run: |
+          mkdir -p _site
+          cp -r index.html profile.html reset-password.html admin.html terms.html privacy.html 404.html robots.txt .nojekyll _headers assets _site/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site"
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co http://127.0.0.1:54321 http://localhost:54321 https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <title>Shedness Launcher — Личный кабинет</title>
+  <link rel="icon" type="image/png" href="./assets/img/logo.png" />
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <div class="shader-fallback-bg" aria-hidden="true"></div>
+  <canvas id="bg-shader-canvas" aria-hidden="true"></canvas>
+  <canvas id="snow-canvas" aria-hidden="true"></canvas>
+
+  <div class="site-content">
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="./index.html" class="brand-link">
+          <img src="./assets/img/logo.png" alt="Shedness Launcher" class="brand-logo" />
+          <span>SHEDNESS</span>
+        </a>
+        <div class="header-actions">
+          <a href="./index.html" class="btn-glass">На главную</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="flex: 1; padding: 48px 20px 80px; max-width: 960px;">
+      <div id="profile-alert" class="alert-banner hidden"></div>
+
+      <div id="config-notice" class="glass-card hidden" style="max-width: 620px; margin: 0 auto;">
+        <h1 style="font-size: 20px; margin-bottom: 8px;">Требуется настройка Supabase</h1>
+        <p style="font-size: 14px; color: var(--text-secondary);">
+          Укажите <code>supabaseUrl</code> и <code>supabaseAnonKey</code> в файле
+          <code>assets/js/site-config.js</code> (или через GitHub Actions Variables).
+        </p>
+      </div>
+
+      <!-- Auth View -->
+      <section id="auth-section" class="glass-card" style="max-width: 460px; margin: 20px auto;">
+        <span class="pill-tag">Аккаунт</span>
+        <h1 style="font-size: 24px; margin-bottom: 6px;">Вход в Shedness</h1>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 18px;">
+          Минимальный профиль: только ник и лицензия.
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+          <button type="button" id="tab-login" class="btn-primary">Вход</button>
+          <button type="button" id="tab-register" class="btn-glass">Регистрация</button>
+        </div>
+
+        <form id="auth-form" style="display: flex; flex-direction: column; gap: 14px;">
+          <div id="reg-nick-wrap" class="hidden">
+            <label class="field-label" for="reg-nick">Никнейм</label>
+            <input id="reg-nick" class="input-field" maxlength="16" placeholder="PlayerName" />
+          </div>
+
+          <div>
+            <label class="field-label" for="auth-email">Email</label>
+            <input id="auth-email" type="email" class="input-field" required autocomplete="email" placeholder="name@example.com" />
+          </div>
+
+          <div>
+            <label class="field-label" for="auth-password">Пароль</label>
+            <input id="auth-password" type="password" class="input-field" required autocomplete="current-password" placeholder="••••••••" />
+          </div>
+
+          <div id="auth-turnstile"></div>
+
+          <button type="submit" id="btn-auth-submit" class="btn-primary">Войти</button>
+
+          <div style="text-align: right;">
+            <a href="./reset-password.html" style="font-size: 12.5px; color: var(--text-secondary);">Забыли пароль?</a>
+          </div>
+        </form>
+      </section>
+
+      <!-- Dashboard View -->
+      <section id="dashboard-section" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
+        <div class="glass-card" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img id="prof-avatar" src="./assets/img/logo.png" alt="Аватар" style="width: 54px; height: 54px; border-radius: 12px; object-fit: cover; border: 1px solid rgba(255,255,255,0.25);" />
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h1 id="prof-nick" style="font-size: 20px;">Игрок</h1>
+                <span id="prof-uid" class="pill-tag" style="margin-bottom: 0;">UID #—</span>
+              </div>
+              <div id="prof-email" style="font-size: 13px; color: var(--text-secondary);"></div>
+            </div>
+          </div>
+          <button type="button" id="btn-logout" class="btn-glass">Выйти</button>
+        </div>
+
+        <div class="grid-3">
+          <div class="glass-card">
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Статус лицензии</div>
+            <div id="prof-sub-status" style="font-size: 17px; font-weight: 700;">—</div>
+            <div id="prof-sub-until" style="font-size: 12.5px; color: var(--text-secondary); margin-top: 4px;">—</div>
+          </div>
+          <div class="glass-card">
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Привязка HWID</div>
+            <div id="prof-hwid" style="font-size: 14px; font-family: monospace;">—</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Привязывается при запуске</div>
+          </div>
+          <div class="glass-card">
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Защита выдачи</div>
+            <div style="font-size: 15px; font-weight: 600;">Signed URL (60с)</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">RLS + SHA-256</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div id="redeem" class="glass-card">
+            <h2 style="font-size: 17px; margin-bottom: 12px;">Активация лицензионного ключа</h2>
+            <form id="redeem-form" style="display: flex; flex-direction: column; gap: 12px;">
+              <input id="license-key-input" class="input-field" placeholder="SHEDNESS-30D-XXXX-XXXX-XXXX-XXXX" autocomplete="off" required />
+              <div id="redeem-turnstile"></div>
+              <button type="submit" id="btn-redeem" class="btn-primary">Применить ключ</button>
+            </form>
+          </div>
+
+          <div class="glass-card">
+            <h2 style="font-size: 17px; margin-bottom: 12px;">Профиль</h2>
+            <form id="profile-form" style="display: flex; flex-direction: column; gap: 12px;">
+              <div>
+                <label class="field-label" for="edit-nick">Никнейм</label>
+                <input id="edit-nick" class="input-field" maxlength="16" required />
+              </div>
+              <button type="submit" class="btn-glass">Сохранить ник</button>
+            </form>
+          </div>
+        </div>
+
+        <div id="download" class="glass-card">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div>
+              <h2 style="font-size: 18px;">Скачать Shedness Launcher</h2>
+              <p style="font-size: 13px; color: var(--text-secondary);">Временная подписанная ссылка выдаётся на 60 секунд.</p>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn-primary" data-dl-platform="windows">WINDOWS</button>
+              <button type="button" class="btn-glass" data-dl-platform="macos">MACOS</button>
+              <button type="button" class="btn-glass" data-dl-platform="linux">LINUX</button>
+            </div>
+          </div>
+
+          <div id="download-locked" class="alert-banner alert-error" style="margin-bottom: 0;">
+            Для скачивания лаунчера необходима активная лицензия. Активируйте ключ выше.
+          </div>
+
+          <div id="download-controls" class="hidden" style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label class="field-label" for="release-select">Версия</label>
+              <select id="release-select" class="input-field"></select>
+            </div>
+
+            <div id="release-sha-box" class="glass-subcard hidden">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                <span id="release-file-meta" style="font-size: 12.5px; color: var(--text-secondary);"></span>
+                <button type="button" id="btn-copy-sha" class="btn-glass" style="padding: 5px 10px; font-size: 12px;">Копировать SHA-256</button>
+              </div>
+              <div id="release-sha-text" style="margin-top: 6px; font-family: monospace; font-size: 12px; color: #A3E635; word-break: break-all;"></div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+              <button type="button" id="btn-download-launcher" class="btn-primary">Скачать Shedness Launcher</button>
+              <a id="signed-download-link" class="hidden" rel="noopener noreferrer" style="font-size: 13px; color: #4ADE80; text-decoration: underline;"></a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span>SHEDNESS LAUNCHER</span>
+        <div style="display: flex; gap: 16px;">
+          <a href="./terms.html">Соглашение</a>
+          <a href="./privacy.html">Конфиденциальность</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="./assets/js/site-config.js?v=2"></script>
+  <script src="./assets/js/anime.min.js"></script>
+  <script src="./assets/js/effects.js?v=2"></script>
+  <script src="./assets/js/animations.js"></script>
+  <script src="./assets/js/profile.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "shedness-launcher-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build:js": "node build.mjs",
+    "build": "npm run typecheck && npm run build:js",
+    "preview": "npx serve ."
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.2",
+    "typescript": "^5.8.3"
+  }
+}

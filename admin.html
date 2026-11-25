@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co http://127.0.0.1:54321 http://localhost:54321; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <title>Shedness</title>
+  <link rel="icon" type="image/png" href="./assets/img/logo.png" />
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <div class="shader-fallback-bg" aria-hidden="true"></div>
+  <canvas id="bg-shader-canvas" aria-hidden="true"></canvas>
+  <canvas id="snow-canvas" aria-hidden="true"></canvas>
+
+  <div class="site-content">
+    <main class="container" style="flex: 1; padding: 56px 20px;">
+      <div id="admin-alert" class="alert-banner hidden"></div>
+
+      <!-- Shown immediately to anyone not in public.admins -->
+      <section id="admin-404" class="glass-card hidden" style="max-width: 480px; margin: 60px auto; text-align: center;">
+        <h1 style="font-size: 36px; margin-bottom: 8px;">404</h1>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 18px;">Страница не найдена.</p>
+        <a href="./index.html" class="btn-primary">На главную</a>
+      </section>
+
+      <!-- TOTP 2FA Gate -->
+      <section id="admin-totp-gate" class="glass-card hidden" style="max-width: 440px; margin: 40px auto;">
+        <span class="pill-tag">Admin 2FA</span>
+        <h1 style="font-size: 22px; margin-bottom: 12px;">Подтверждение TOTP</h1>
+
+        <button type="button" id="btn-init-totp" class="btn-primary hidden" style="width: 100%; margin-bottom: 12px;">
+          Настроить 2FA (TOTP)
+        </button>
+
+        <div id="totp-secret-box" class="glass-subcard hidden" style="margin-bottom: 14px; font-size: 12.5px;">
+          <div style="color: var(--text-secondary); margin-bottom: 6px;">Добавьте секрет в Authenticator:</div>
+          <div id="totp-manual-secret" style="font-family: monospace; color: #4ADE80; word-break: break-all;"></div>
+        </div>
+
+        <form id="totp-verify-form" class="hidden" style="display: flex; flex-direction: column; gap: 12px;">
+          <input id="totp-code-input" class="input-field" placeholder="6-значный код TOTP" maxlength="6" inputmode="numeric" required />
+          <button type="submit" class="btn-primary">Открыть консоль</button>
+        </form>
+      </section>
+
+      <!-- Admin Console -->
+      <section id="admin-console" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
+        <div class="glass-card" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+          <h1 style="font-size: 20px;">Консоль управления Shedness</h1>
+          <input id="admin-reauth-totp" class="input-field" style="width: 210px;" maxlength="6" inputmode="numeric" placeholder="TOTP для критичных действий" />
+        </div>
+
+        <div class="glass-card">
+          <h2 style="font-size: 17px; margin-bottom: 12px;">Генерация HMAC-ключей</h2>
+          <form id="gen-key-form" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+            <select id="gen-key-days" class="input-field" style="width: 220px;">
+              <option value="7">7 дней</option>
+              <option value="30" selected>30 дней</option>
+              <option value="365">365 дней</option>
+              <option value="9999">Навсегда (Lifetime)</option>
+              <option value="0">Сброс HWID</option>
+            </select>
+            <button type="submit" class="btn-primary">Создать ключ</button>
+          </form>
+          <div id="generated-key-out" class="glass-subcard hidden" style="margin-top: 12px; font-family: monospace; color: #4ADE80;"></div>
+
+          <div style="overflow-x: auto; margin-top: 16px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead>
+                <tr style="text-align: left; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.14);">
+                  <th style="padding: 8px 6px;">Префикс</th>
+                  <th style="padding: 8px 6px;">Срок</th>
+                  <th style="padding: 8px 6px;">Статус</th>
+                </tr>
+              </thead>
+              <tbody id="admin-keys-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h2 style="font-size: 17px; margin-bottom: 12px;">Загрузка релиза (SHA-256)</h2>
+          <form id="upload-release-form" class="grid-3" style="align-items: end;">
+            <div>
+              <label class="field-label" for="rel-version">Версия</label>
+              <input id="rel-version" class="input-field" value="1.0.0" required />
+            </div>
+            <div>
+              <label class="field-label" for="rel-platform">Платформа</label>
+              <select id="rel-platform" class="input-field">
+                <option value="windows">Windows</option>
+                <option value="macos">macOS</option>
+                <option value="linux">Linux</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="rel-channel">Канал</label>
+              <select id="rel-channel" class="input-field">
+                <option value="stable">Stable</option>
+                <option value="beta">Beta</option>
+                <option value="alpha">Alpha</option>
+              </select>
+            </div>
+            <input id="rel-file" type="file" class="input-field" required />
+            <button type="submit" class="btn-primary">Загрузить релиз</button>
+          </form>
+        </div>
+
+        <div class="glass-card">
+          <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+            <input id="admin-user-search" class="input-field" placeholder="Поиск пользователей..." />
+            <button type="button" id="btn-search-users" class="btn-glass">Найти</button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead>
+                <tr style="text-align: left; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.14);">
+                  <th style="padding: 8px 6px;">UID</th>
+                  <th style="padding: 8px 6px;">Пользователь</th>
+                  <th style="padding: 8px 6px;">Лицензия</th>
+                  <th style="padding: 8px 6px;">Действия</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-card" style="overflow-x: auto;">
+          <h2 style="font-size: 17px; margin-bottom: 12px;">Audit Log (Append-Only)</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
+            <thead>
+              <tr style="text-align: left; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.14);">
+                <th style="padding: 8px 6px;">Время</th>
+                <th style="padding: 8px 6px;">Актор</th>
+                <th style="padding: 8px 6px;">Событие</th>
+                <th style="padding: 8px 6px;">IP</th>
+              </tr>
+            </thead>
+            <tbody id="admin-audit-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./assets/js/site-config.js?v=2"></script>
+  <script src="./assets/js/anime.min.js"></script>
+  <script src="./assets/js/effects.js?v=2"></script>
+  <script src="./assets/js/animations.js"></script>
+  <script src="./assets/js/admin.js?v=2"></script>
+</body>
+</html>
