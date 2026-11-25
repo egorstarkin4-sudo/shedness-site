@@ -48,7 +48,9 @@ jobs:
           mkdir -p _site
           cp -r index.html profile.html reset-password.html admin.html terms.html privacy.html 404.html robots.txt .nojekyll _headers assets _site/
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: "_site"
 
