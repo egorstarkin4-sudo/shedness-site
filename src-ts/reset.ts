@@ -1,3 +1,4 @@
+import { getSiteConfig } from "./config";
 import { getSupabaseClient, hideBanner, invokeEdge, mountTurnstile, showBanner } from "./api";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -7,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const updForm = document.getElementById("reset-update-form");
   let token = "";
 
-  mountTurnstile(document.getElementById("reset-turnstile"), (t) => {
+  const resetTurnstile = mountTurnstile(document.getElementById("reset-turnstile"), (t) => {
     token = t;
   });
 
@@ -30,12 +31,18 @@ document.addEventListener("DOMContentLoaded", () => {
     hideBanner(alertEl);
     if (!supabase) return;
 
+    if (getSiteConfig().turnstileSiteKey && !token) {
+      showBanner(alertEl, "Пройдите проверку Cloudflare Turnstile", "error");
+      return;
+    }
+
     const email = (document.getElementById("reset-email") as HTMLInputElement | null)?.value.trim() ?? "";
     const guard = await invokeEdge<{ ok: boolean }>("auth-guard", {
       action: "reset",
       identifier: email.toLowerCase(),
       turnstileToken: token || "dev-token-placeholder",
     });
+    resetTurnstile.reset();
     if (!guard.ok) {
       showBanner(alertEl, guard.error ?? "Проверка не пройдена", "error");
       return;

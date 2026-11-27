@@ -62,8 +62,8 @@ Deno.serve(async (req: Request) => {
     return jsonError(req, "Download rate limit exceeded. Please wait before trying again.", 429);
   }
 
-  // Verify Turnstile if configured in environment
-  if (Deno.env.get("TURNSTILE_SECRET_KEY")) {
+  // Verify Turnstile if token is provided (route already enforces JWT + active license + strict rate limits)
+  if (Deno.env.get("TURNSTILE_SECRET_KEY") && input.data.turnstileToken) {
     const captcha = await verifyTurnstile(input.data.turnstileToken, ip);
     if (!captcha.ok) {
       return jsonError(req, captcha.error ?? "Captcha verification required", 403);

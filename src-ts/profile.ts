@@ -1,4 +1,4 @@
-import { isSupabaseConfigured } from "./config";
+import { getSiteConfig, isSupabaseConfigured } from "./config";
 import { getSupabaseClient, hideBanner, invokeEdge, mountTurnstile, showBanner } from "./api";
 
 interface ProfileRow {
@@ -40,7 +40,8 @@ interface LauncherHandoff {
 }
 
 let authMode: "login" | "register" = "login";
-let turnstileToken = "";
+let authTurnstileToken = "";
+let redeemTurnstileToken = "";
 let selectedPlatform: "windows" | "macos" | "linux" = "windows";
 let releasesCache: PublicRelease[] = [];
 let activeHandoff: LauncherHandoff | null = null;
@@ -326,10 +327,10 @@ document.addEventListener("DOMContentLoaded", () => {
     await loadProfile();
   });
   const authTurnstile = mountTurnstile($("auth-turnstile"), (t) => {
-    turnstileToken = t;
+    authTurnstileToken = t;
   });
   const redeemTurnstile = mountTurnstile($("redeem-turnstile"), (t) => {
-    turnstileToken = t;
+    redeemTurnstileToken = t;
   });
 
   // Auth tabs
@@ -374,18 +375,24 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (getSiteConfig().turnstileSiteKey && !authTurnstileToken) {
+      showBanner(alertEl, "Пройдите проверку Cloudflare Turnstile", "error");
+      return;
+    }
+
     if (authSubmitBtn) authSubmitBtn.disabled = true;
     try {
       const guard = await invokeEdge<{ ok: boolean }>("auth-guard", {
         action: authMode,
         identifier: email,
-        turnstileToken: turnstileToken || "dev-token-placeholder",
+        turnstileToken: authTurnstileToken || "dev-token-placeholder",
       });
       if (!guard.ok) {
         showBanner(alertEl, guard.error ?? "Проверка безопасности не пройдена", "error");
         authTurnstile.reset();
         return;
       }
+      authTurnstile.reset();
 
       if (authMode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -478,6 +485,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (getSiteConfig().turnstileSiteKey && !redeemTurnstileToken) {
+      showBanner(alertEl, "Пройдите проверку Cloudflare Turnstile", "error");
+      return;
+    }
+
     const { data: sess } = await supabase.auth.getSession();
     const token = sess.session?.access_token;
     if (!token) return;
@@ -487,12 +499,12 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const res = await invokeEdge<{ type: string; until: string }>(
         "redeem-key",
-        { key: cleanKey, turnstileToken: turnstileToken || undefined },
+        { key: cleanKey, turnstileToken: redeemTurnstileToken || undefined },
         { accessToken: token },
       );
+      redeemTurnstile.reset();
       if (!res.ok) {
         showBanner(alertEl, res.error ?? "Ошибка активации ключа", "error");
-        redeemTurnstile.reset();
         return;
       }
       if (keyInput) keyInput.value = "";
@@ -544,7 +556,6 @@ document.addEventListener("DOMContentLoaded", () => {
         {
           platform: selectedPlatform,
           releaseId,
-          turnstileToken: turnstileToken || undefined,
         },
         { accessToken: token },
       );

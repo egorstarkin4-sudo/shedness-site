@@ -2,9 +2,8 @@ export async function verifyTurnstile(
   token: string | undefined,
   remoteIp: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
+  const secret = (Deno.env.get("TURNSTILE_SECRET_KEY") ?? "").trim();
   if (!secret) {
-    // Only allow bypass in explicit local development mode
     if (Deno.env.get("ALLOW_DEV_TURNSTILE_BYPASS") === "true") {
       return { ok: true };
     }
@@ -16,12 +15,12 @@ export async function verifyTurnstile(
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
 
   try {
     const form = new URLSearchParams();
     form.set("secret", secret);
-    form.set("response", token);
+    form.set("response", token.trim());
     if (remoteIp && remoteIp !== "unknown") {
       form.set("remoteip", remoteIp);
     }
@@ -33,17 +32,28 @@ export async function verifyTurnstile(
       signal: controller.signal,
     });
 
-    if (!res.ok) {
+    const result = (await res.json().catch(() => null)) as {
+      success?: boolean;
+      "error-codes"?: string[];
+    } | null;
+
+    if (!res.ok || !result) {
+      console.warn("Turnstile HTTP error:", res.status, result?.["error-codes"] ?? []);
       return { ok: false, error: "Captcha provider unavailable" };
     }
 
-    const result = (await res.json()) as { success?: boolean };
     if (!result.success) {
+      const codes = result["error-codes"] ?? [];
+      console.warn("Turnstile verify rejected:", codes);
+      if (codes.includes("invalid-input-secret")) {
+        return { ok: false, error: "Turnstile secret key invalid on server" };
+      }
       return { ok: false, error: "Captcha verification failed" };
     }
 
     return { ok: true };
-  } catch {
+  } catch (err) {
+    console.warn("Turnstile fetch error:", err instanceof Error ? err.message : String(err));
     return { ok: false, error: "Captcha verification timeout" };
   } finally {
     clearTimeout(timeoutId);
